@@ -1,0 +1,8 @@
+menuconfig UIOMMU
+	tristate "User level manipulation of IOMMU"
+	help
+	  Device driver to allow user level programs to
+	  manipulate IOMMU domains.
+
+	  If you don't know what to do here, say N.
+
