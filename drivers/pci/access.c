@@ -157,7 +157,8 @@ int pci_user_read_config_##size						\
 	raw_spin_unlock_irq(&pci_lock);				\
 	*val = (type)data;						\
 	return ret;							\
-}
+}									\
+EXPORT_SYMBOL_GPL(pci_user_read_config_##size);
 
 #define PCI_USER_WRITE_CONFIG(size,type)				\
 int pci_user_write_config_##size					\
@@ -171,7 +172,8 @@ int pci_user_write_config_##size					\
 					pos, sizeof(type), val);	\
 	raw_spin_unlock_irq(&pci_lock);				\
 	return ret;							\
-}
+}									\
+EXPORT_SYMBOL_GPL(pci_user_write_config_##size);
 
 PCI_USER_READ_CONFIG(byte, u8)
 PCI_USER_READ_CONFIG(word, u16)
