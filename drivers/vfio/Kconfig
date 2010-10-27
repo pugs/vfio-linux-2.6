@@ -1,3 +1,13 @@
+menuconfig VFIO
+	tristate "Non-Privileged User Space PCI drivers"
+	depends on UIOMMU && PCI && IOMMU_API
+	help
+	  Driver to allow advanced user space drivers for PCI, PCI-X,
+	  and PCIe devices.  Requires IOMMU to allow non-privileged
+	  processes to directly control the PCI devices.
+
+	  If you don't know what to do here, say N.
+
 menuconfig UIOMMU
 	tristate "User level manipulation of IOMMU"
 	help

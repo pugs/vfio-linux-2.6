@@ -366,6 +366,7 @@ header-y += usbdevice_fs.h
 header-y += utime.h
 header-y += utsname.h
 header-y += veth.h
+header-y += vfio.h
 header-y += vhost.h
 header-y += videodev.h
 header-y += videodev2.h
