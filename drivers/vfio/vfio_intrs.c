@@ -52,32 +52,44 @@ irqreturn_t vfio_interrupt(int irq, void *dev_id)
 	u16 origcmd, newcmd, status;
 
 	spin_lock_irq(&vdev->irqlock);
-	pci_block_user_cfg_access(pdev);
 
-	/* Read both command and status registers in a single 32-bit operation.
-	 * Note: we could cache the value for command and move the status read
-	 * out of the lock if there was a way to get notified of user changes
-	 * to command register through sysfs. Should be good for shared irqs. */
-	pci_read_config_dword(pdev, PCI_COMMAND, &cmd_status_dword);
-	origcmd = cmd_status_dword;
-	status = cmd_status_dword >> 16;
+	if (vdev->pci_2_3) {
+		pci_block_user_cfg_access(pdev);
 
-	/* Check interrupt status register to see whether our device
-	 * triggered the interrupt. */
-	if (!(status & PCI_STATUS_INTERRUPT))
-		goto done;
+		/* Read both command and status registers in a single 32-bit
+		 * operation. Note: we could cache the value for command and
+		 * move the status read out of the lock if there was a way to
+		 * get notified of user changes to command register through
+		 * sysfs. Should be good for shared irqs. */
+		pci_read_config_dword(pdev, PCI_COMMAND, &cmd_status_dword);
+		origcmd = cmd_status_dword;
+		status = cmd_status_dword >> 16;
 
-	/* We triggered the interrupt, disable it. */
-	newcmd = origcmd | PCI_COMMAND_INTX_DISABLE;
-	if (newcmd != origcmd)
-		pci_write_config_word(pdev, PCI_COMMAND, newcmd);
+		/* Check interrupt status register to see whether our device
+	 	* triggered the interrupt. */
+		if (!(status & PCI_STATUS_INTERRUPT))
+			goto done;
 
-	ret = IRQ_HANDLED;
+		/* We triggered the interrupt, disable it. */
+		newcmd = origcmd | PCI_COMMAND_INTX_DISABLE;
+		if (newcmd != origcmd)
+			pci_write_config_word(pdev, PCI_COMMAND, newcmd);
+
+		ret = IRQ_HANDLED;
 done:
-	pci_unblock_user_cfg_access(pdev);
+		pci_unblock_user_cfg_access(pdev);
+	} else {
+		disable_irq_nosync(pdev->irq);
+		ret = IRQ_HANDLED;
+	}
+
+	vdev->irq_disabled = (ret == IRQ_HANDLED);
+
 	spin_unlock_irq(&vdev->irqlock);
+
 	if (ret != IRQ_HANDLED)
 		return ret;
+
 	if (vdev->ev_irq)
 		eventfd_signal(vdev->ev_irq, 1);
 	return ret;
@@ -86,16 +98,25 @@ done:
 int vfio_irq_eoi(struct vfio_dev *vdev)
 {
 	struct pci_dev *pdev = vdev->pdev;
-	u16 cmd;
 
 	spin_lock_irq(&vdev->irqlock);
-	pci_block_user_cfg_access(pdev);
 
-	pci_read_config_word(pdev, PCI_COMMAND, &cmd);
-	cmd &= ~PCI_COMMAND_INTX_DISABLE;
-	pci_write_config_word(pdev, PCI_COMMAND, cmd);
+	if (vdev->irq_disabled) {
+		if (vdev->pci_2_3) {
+			u16 cmd;
+			pci_block_user_cfg_access(pdev);
 
-	pci_unblock_user_cfg_access(pdev);
+			pci_read_config_word(pdev, PCI_COMMAND, &cmd);
+			cmd &= ~PCI_COMMAND_INTX_DISABLE;
+			pci_write_config_word(pdev, PCI_COMMAND, cmd);
+
+			pci_unblock_user_cfg_access(pdev);
+		} else
+			enable_irq(pdev->irq);
+
+		vdev->irq_disabled = false;
+	}
+
 	spin_unlock_irq(&vdev->irqlock);
 	return 0;
 }

@@ -77,6 +77,8 @@ struct vfio_dev {
 	u8		msi_qmax;
 	u8		bardirty;
 	struct perm_bits	*msi_perm;
+	bool		pci_2_3;
+	bool		irq_disabled;
 };
 
 struct vfio_listener {

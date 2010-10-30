@@ -401,7 +401,8 @@ static long vfio_unl_ioctl(struct file *filep,
 				if (vdev->ev_irq)
 					ret = request_irq(pdev->irq,
 						vfio_interrupt,
-						IRQF_SHARED, vdev->name, vdev);
+						vdev->pci_2_3 ? IRQF_SHARED : 0,
+						vdev->name, vdev);
 				else
 					ret = -EINVAL;
 			}
@@ -567,8 +568,8 @@ static int verify_pci_2_3(struct pci_dev *pdev)
 		return -EBUSY;
 	}
 	if (!((new ^ orig) & PCI_COMMAND_INTX_DISABLE)) {
-		dev_warn(&pdev->dev, "Device does not support "
-			 "disabling interrupts: unable to bind.\n");
+		dev_warn(&pdev->dev, "Device does not support disabling "
+			 "interrupts, exclusive interrupt required.\n");
 		return -ENODEV;
 	}
 	/* Now restore the original value. */
@@ -589,14 +590,12 @@ static int vfio_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	if ((type & 0x7F) != PCI_HEADER_TYPE_NORMAL)
 		return -EINVAL;
 
-	err = verify_pci_2_3(pdev);
-	if (err)
-		return err;
-
 	vdev = kzalloc(sizeof(struct vfio_dev), GFP_KERNEL);
 	if (!vdev)
 		return -ENOMEM;
 	vdev->pdev = pdev;
+
+	vdev->pci_2_3 = (verify_pci_2_3(pdev) == 0);
 
 	mutex_init(&vdev->lgate);
 	mutex_init(&vdev->dgate);
