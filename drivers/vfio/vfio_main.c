@@ -469,6 +469,12 @@ static long vfio_unl_ioctl(struct file *filep,
 		ret = vfio_irq_eoi(vdev);
 		break;
 
+	case VFIO_IRQ_EOI_EVENTFD:
+		if (copy_from_user(&fd, uarg, sizeof fd))
+			return -EFAULT;
+		ret = vfio_irq_eoi_eventfd(vdev, fd);
+		break;
+
 	default:
 		return -EINVAL;
 	}
@@ -774,6 +780,7 @@ static int __init init(void)
 	vfio_class_init();
 	vfio_nl_init();
 	register_pm_notifier(&vfio_pm_nb);
+	vfio_eoi_module_init();
 	return pci_register_driver(&driver);
 }
 
@@ -782,6 +789,7 @@ static void __exit cleanup(void)
 	if (vfio_major >= 0)
 		unregister_chrdev(vfio_major, "vfio");
 	pci_unregister_driver(&driver);
+	vfio_eoi_module_exit();
 	unregister_pm_notifier(&vfio_pm_nb);
 	unregister_pm_notifier(&vfio_pm_nb);
 	vfio_nl_exit();

@@ -43,6 +43,7 @@ struct vfio_nl_client {
 };
 
 struct perm_bits;
+struct eoi_eventfd;
 struct vfio_dev {
 	struct device	*dev;
 	struct pci_dev	*pdev;
@@ -79,6 +80,7 @@ struct vfio_dev {
 	struct perm_bits	*msi_perm;
 	bool		pci_2_3;
 	bool		irq_disabled;
+	struct eoi_eventfd	*ev_eoi;
 };
 
 struct vfio_listener {
@@ -158,6 +160,9 @@ void vfio_error_resume(struct pci_dev *);
 
 irqreturn_t vfio_interrupt(int, void *);
 int vfio_irq_eoi(struct vfio_dev *);
+int vfio_irq_eoi_eventfd(struct vfio_dev *, int);
+int vfio_eoi_module_init(void);
+void vfio_eoi_module_exit(void);
 
 #endif	/* __KERNEL__ */
 
@@ -203,6 +208,10 @@ struct vfio_dma_map {
 
 /* Re-enable INTx */
 #define	VFIO_IRQ_EOI		_IO(';', 109)
+
+/* Re-enable INTx via eventfd */
+#define	VFIO_IRQ_EOI_EVENTFD	_IOW(';', 110, int)
+
 /*
  * Reads, writes, and mmaps determine which PCI BAR (or config space)
  * from the high level bits of the file offset
