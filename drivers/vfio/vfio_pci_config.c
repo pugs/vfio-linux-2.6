@@ -797,7 +797,7 @@ static void vfio_bar_fixup(struct vfio_dev *vdev)
 
 	if (pci_resource_start(pdev, PCI_ROM_RESOURCE)) {
 		mask = ~(pci_resource_len(pdev, PCI_ROM_RESOURCE) - 1);
-		mask = PCI_ROM_ADDRESS_ENABLE;
+		mask |= PCI_ROM_ADDRESS_ENABLE;
 	} else
 		mask = 0;
 	lp = (u32 *)(vdev->vconfig + PCI_ROM_ADDRESS);
