@@ -316,6 +316,18 @@ static int vfio_mmap(struct file *filep, struct vm_area_struct *vma)
 	if (requested > actual || actual == 0)
 		return -EINVAL;
 
+	/*
+	 * Even though we don't make use of the barmap for the mmap,
+	 * we need to request the region and the barmap tracks that.
+	 */
+	if (!vdev->barmap[pci_space]) {
+		ret = pci_request_selected_regions(pdev, (1 << pci_space),
+						   vdev->name);
+		if (ret)
+			return ret;
+		vdev->barmap[pci_space] = pci_iomap(pdev, pci_space, 0);
+	}
+
 	start = vma->vm_pgoff << PAGE_SHIFT;
 	len = vma->vm_end - vma->vm_start;
 	if (allow_unsafe_intrs && (vma->vm_flags & VM_WRITE)) {

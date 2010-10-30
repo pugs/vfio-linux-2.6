@@ -67,7 +67,7 @@ ssize_t vfio_io_readwrite(
 		int ret;
 
 		ret = pci_request_selected_regions(pdev,
-			(1 << pci_space), "vfio");
+			(1 << pci_space), vdev->name);
 		if (ret)
 			return ret;
 		vdev->barmap[pci_space] = pci_iomap(pdev, pci_space, 0);
@@ -164,7 +164,7 @@ ssize_t vfio_mem_readwrite(
 			int ret;
 
 			ret = pci_request_selected_regions(pdev,
-				(1 << pci_space), "vfio");
+				(1 << pci_space), vdev->name);
 			if (ret)
 				return ret;
 			vdev->barmap[pci_space] =
