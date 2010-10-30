@@ -155,6 +155,7 @@ void vfio_error_resume(struct pci_dev *);
 #define VFIO_SUSPEND_REPLY_TIMEOUT	(5*HZ)
 
 irqreturn_t vfio_interrupt(int, void *);
+int vfio_irq_eoi(struct vfio_dev *);
 
 #endif	/* __KERNEL__ */
 
@@ -198,6 +199,8 @@ struct vfio_dma_map {
 /* Unset the IOMMU domain */
 #define	VFIO_DOMAIN_UNSET	_IO(';', 108)
 
+/* Re-enable INTx */
+#define	VFIO_IRQ_EOI		_IO(';', 109)
 /*
  * Reads, writes, and mmaps determine which PCI BAR (or config space)
  * from the high level bits of the file offset

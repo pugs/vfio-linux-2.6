@@ -83,6 +83,23 @@ done:
 	return ret;
 }
 
+int vfio_irq_eoi(struct vfio_dev *vdev)
+{
+	struct pci_dev *pdev = vdev->pdev;
+	u16 cmd;
+
+	spin_lock_irq(&vdev->irqlock);
+	pci_block_user_cfg_access(pdev);
+
+	pci_read_config_word(pdev, PCI_COMMAND, &cmd);
+	cmd &= ~PCI_COMMAND_INTX_DISABLE;
+	pci_write_config_word(pdev, PCI_COMMAND, cmd);
+
+	pci_unblock_user_cfg_access(pdev);
+	spin_unlock_irq(&vdev->irqlock);
+	return 0;
+}
+
 /*
  * MSI and MSI-X Interrupt handler.
  * Just signal an event

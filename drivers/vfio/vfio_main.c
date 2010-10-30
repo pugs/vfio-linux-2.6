@@ -464,6 +464,10 @@ static long vfio_unl_ioctl(struct file *filep,
 		ret = vfio_domain_unset(vdev);
 		break;
 
+	case VFIO_IRQ_EOI:
+		ret = vfio_irq_eoi(vdev);
+		break;
+
 	default:
 		return -EINVAL;
 	}
