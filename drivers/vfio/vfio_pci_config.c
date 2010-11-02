@@ -410,7 +410,7 @@ static int vfio_msi_cap_len(struct vfio_dev *vdev, u8 pos)
  * Determine extended capability length for VC (2 & 9) and
  * MFVC capabilities
  */
-static int vfio_vc_cap_len(struct vfio_dev *vdev, u8 pos)
+static int vfio_vc_cap_len(struct vfio_dev *vdev, u16 pos)
 {
 	struct pci_dev *pdev = vdev->pdev;
 	u32 dw;
@@ -580,7 +580,7 @@ int vfio_build_config_map(struct vfio_dev *vdev)
 				printk(KERN_WARNING
 					"%s: pci config conflict at %x, "
 					"caps %x %x\n",
-					__func__, i, map[pos+i], cap);
+					__func__, pos+i, map[pos+i], cap);
 			map[pos+i] = cap;
 		}
 		ret = pci_read_config_byte(pdev, pos + PCI_CAP_LIST_NEXT, &pos);
@@ -683,7 +683,7 @@ int vfio_build_config_map(struct vfio_dev *vdev)
 		if (len == 0 || len == 0xFF) {
 			printk(KERN_WARNING
 				"%s: unknown length for pci ext cap %x\n",
-				__func__, cap);
+				__func__, ecap);
 			len = PCI_CAP_SIZEOF;
 		}
 		for (i = 0; i < len; i++) {
@@ -691,7 +691,7 @@ int vfio_build_config_map(struct vfio_dev *vdev)
 				printk(KERN_WARNING
 					"%s: pci config conflict at %x, "
 					"caps %x %x\n",
-					__func__, i, map[epos+i], ecap);
+					__func__, epos+i, map[epos+i], ecap);
 			map[epos+i] = ecap;
 		}
 
