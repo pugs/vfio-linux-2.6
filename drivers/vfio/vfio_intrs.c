@@ -57,6 +57,12 @@ irqreturn_t vfio_interrupt(int irq, void *dev_id)
 
 	spin_lock_irq(&vdev->irqlock);
 
+	/* INTX disabled interrupts can still be shared */
+	if (vdev->irq_disabled) {
+		spin_unlock_irq(&vdev->irqlock);
+		return ret;
+	}
+
 	if (vdev->pci_2_3) {
 		pci_block_user_cfg_access(pdev);
 
@@ -87,7 +93,8 @@ done:
 		ret = IRQ_HANDLED;
 	}
 
-	vdev->irq_disabled = (ret == IRQ_HANDLED);
+	if (ret == IRQ_HANDLED)
+		vdev->irq_disabled = true;
 
 	spin_unlock_irq(&vdev->irqlock);
 
