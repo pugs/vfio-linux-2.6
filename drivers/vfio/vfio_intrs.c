@@ -70,7 +70,7 @@ irqreturn_t vfio_interrupt(int irq, void *dev_id)
 		status = cmd_status_dword >> 16;
 
 		/* Check interrupt status register to see whether our device
-	 	* triggered the interrupt. */
+		 * triggered the interrupt. */
 		if (!(status & PCI_STATUS_INTERRUPT))
 			goto done;
 
