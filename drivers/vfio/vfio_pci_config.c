@@ -964,11 +964,6 @@ static int vfio_config_rwbyte(int write,
 		return 0;
 	}
 
-	if (write) {
-		if (copy_from_user(&newval, buf, 1))
-			return -EFAULT;
-	}
-
 	if (~virt) {	/* mix of real and virt bits */
 		/* update vconfig with latest hw bits */
 		ret = vfio_read_config_byte(vdev, pos, &realbits);
@@ -978,9 +973,14 @@ static int vfio_config_rwbyte(int write,
 			(vdev->vconfig[pos] & virt) | (realbits & ~virt);
 	}
 
-	/* update vconfig with writeable bits */
-	vdev->vconfig[pos] =
-		(vdev->vconfig[pos] & ~wr) | (newval & wr);
+	if (write) {
+		if (copy_from_user(&newval, buf, 1))
+			return -EFAULT;
+
+		/* update vconfig with writeable bits */
+		vdev->vconfig[pos] =
+			(vdev->vconfig[pos] & ~wr) | (newval & wr);
+        }
 
 	/*
 	 * Now massage virtual fields
