@@ -163,6 +163,8 @@ int vfio_irq_eoi(struct vfio_dev *);
 int vfio_irq_eoi_eventfd(struct vfio_dev *, int);
 int vfio_eoi_module_init(void);
 void vfio_eoi_module_exit(void);
+irqreturn_t vfio_disable_intx(struct vfio_dev *vdev);
+void vfio_enable_intx(struct vfio_dev *vdev);
 
 #endif	/* __KERNEL__ */
 

@@ -185,8 +185,8 @@ static int __init init_pci_cap_basic_perm(struct perm_bits *perm)
 
 	/* for catching resume-after-reset */
 	p_setw(perm, PCI_COMMAND,
-			PCI_COMMAND_MEMORY + PCI_COMMAND_IO,
-			ALL_WRITE);
+		PCI_COMMAND_MEMORY + PCI_COMMAND_IO + PCI_COMMAND_INTX_DISABLE,
+		ALL_WRITE);
 
 	/* no harm to write */
 	p_setb(perm, PCI_CACHE_LINE_SIZE,	NO_VIRT,  ALL_WRITE);
@@ -847,6 +847,18 @@ static void vfio_virt_basic(struct vfio_dev *vdev, int write, u16 pos, u8 *rbp)
 			*rbp |= val & (PCI_COMMAND_MEMORY + PCI_COMMAND_IO);
 		}
 		vdev->vconfig[pos] = val;
+		break;
+	case PCI_COMMAND + 1:
+		if (write) {
+			u16 cmd = vdev->vconfig[pos] << 8;
+
+			if ((cmd & PCI_COMMAND_INTX_DISABLE) &&
+			    !vdev->irq_disabled)
+				vfio_disable_intx(vdev);
+			if (!(cmd & PCI_COMMAND_INTX_DISABLE) &&
+			    vdev->irq_disabled)
+				vfio_enable_intx(vdev);
+		}
 		break;
 	case PCI_BASE_ADDRESS_0 ... PCI_BASE_ADDRESS_5 + 3:
 	case PCI_ROM_ADDRESS ... PCI_ROM_ADDRESS + 3:

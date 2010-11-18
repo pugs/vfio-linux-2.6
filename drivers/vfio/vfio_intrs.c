@@ -47,66 +47,60 @@
 /*
  * vfio_interrupt - IRQ hardware interrupt handler
  */
-irqreturn_t vfio_interrupt(int irq, void *dev_id)
+irqreturn_t vfio_disable_intx(struct vfio_dev *vdev)
 {
-	struct vfio_dev *vdev = dev_id;
 	struct pci_dev *pdev = vdev->pdev;
 	irqreturn_t ret = IRQ_NONE;
-	u32 cmd_status_dword;
-	u16 origcmd, newcmd, status;
 
 	spin_lock_irq(&vdev->irqlock);
 
-	/* INTX disabled interrupts can still be shared */
 	if (vdev->irq_disabled) {
 		spin_unlock_irq(&vdev->irqlock);
 		return ret;
 	}
 
 	if (vdev->pci_2_3) {
+		u32 cmd_status_dword;
+		u16 origcmd, newcmd, status;
+
 		pci_block_user_cfg_access(pdev);
 
-		/* Read both command and status registers in a single 32-bit
+		/*
+		 * Read both command and status registers in a single 32-bit
 		 * operation. Note: we could cache the value for command and
 		 * move the status read out of the lock if there was a way to
 		 * get notified of user changes to command register through
-		 * sysfs. Should be good for shared irqs. */
+		 * sysfs. Should be good for shared irqs. 
+		 */
 		pci_read_config_dword(pdev, PCI_COMMAND, &cmd_status_dword);
 		origcmd = cmd_status_dword;
 		status = cmd_status_dword >> 16;
 
-		/* Check interrupt status register to see whether our device
-		 * triggered the interrupt. */
-		if (!(status & PCI_STATUS_INTERRUPT))
-			goto done;
-
-		/* We triggered the interrupt, disable it. */
-		newcmd = origcmd | PCI_COMMAND_INTX_DISABLE;
-		if (newcmd != origcmd)
-			pci_write_config_word(pdev, PCI_COMMAND, newcmd);
-
-		ret = IRQ_HANDLED;
-done:
+		/*
+		 * Check interrupt status register to see whether our device
+		 * triggered the interrupt.
+		 */
+		if (status & PCI_STATUS_INTERRUPT) {
+			/* We triggered the interrupt, disable it. */
+			newcmd = origcmd | PCI_COMMAND_INTX_DISABLE;
+			if (newcmd != origcmd)
+				pci_write_config_word(pdev, PCI_COMMAND, newcmd);
+			vdev->irq_disabled = true;
+			ret = IRQ_HANDLED;
+		}
 		pci_unblock_user_cfg_access(pdev);
 	} else {
 		disable_irq_nosync(pdev->irq);
+		vdev->irq_disabled = true;
 		ret = IRQ_HANDLED;
 	}
 
-	if (ret == IRQ_HANDLED)
-		vdev->irq_disabled = true;
-
 	spin_unlock_irq(&vdev->irqlock);
 
-	if (ret != IRQ_HANDLED)
-		return ret;
-
-	if (vdev->ev_irq)
-		eventfd_signal(vdev->ev_irq, 1);
 	return ret;
 }
 
-int vfio_irq_eoi(struct vfio_dev *vdev)
+void vfio_enable_intx(struct vfio_dev *vdev)
 {
 	struct pci_dev *pdev = vdev->pdev;
 
@@ -129,6 +123,28 @@ int vfio_irq_eoi(struct vfio_dev *vdev)
 	}
 
 	spin_unlock_irq(&vdev->irqlock);
+}
+
+irqreturn_t vfio_interrupt(int irq, void *dev_id)
+{
+	struct vfio_dev *vdev = dev_id;
+	irqreturn_t ret = vfio_disable_intx(vdev);
+
+	if (ret != IRQ_HANDLED)
+		return ret;
+
+	if (vdev->ev_irq)
+		eventfd_signal(vdev->ev_irq, 1);
+	return ret;
+}
+
+int vfio_irq_eoi(struct vfio_dev *vdev)
+{
+	/* EOI shouldn't re-enable intx if disabled by INTX_DISABLE */
+	if (vdev->vconfig[PCI_COMMAND+1] & (PCI_COMMAND_INTX_DISABLE >> 8))
+		return 0;
+
+	vfio_enable_intx(vdev);
 	return 0;
 }
 

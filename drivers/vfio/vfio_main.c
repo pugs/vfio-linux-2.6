@@ -110,8 +110,14 @@ static int vfio_open(struct inode *inode, struct file *filep)
 	listener->vdev = vdev;
 	INIT_LIST_HEAD(&listener->dm_list);
 	if (vdev->listeners == 0) {
+		u16 cmd;
 		(void) pci_reset_function(vdev->pdev);
 		msleep(100);	/* 100ms for reset recovery */
+		pci_read_config_word(vdev->pdev, PCI_COMMAND, &cmd);
+		if (vdev->pci_2_3 && (cmd & PCI_COMMAND_INTX_DISABLE)) {
+			cmd &= ~PCI_COMMAND_INTX_DISABLE;
+			pci_write_config_word(vdev->pdev, PCI_COMMAND, cmd);
+		}
 		ret = pci_enable_device(vdev->pdev);
 	}
 	if (!ret) {
@@ -172,6 +178,7 @@ static int vfio_release(struct inode *inode, struct file *filep)
 			free_irq(vdev->pdev->irq, vdev);
 			eventfd_ctx_put(vdev->ev_irq);
 			vdev->ev_irq = NULL;
+			vdev->irq_disabled = false;
 		}
 		kfree(vdev->vconfig);
 		vdev->vconfig = NULL;
@@ -391,6 +398,7 @@ static long vfio_unl_ioctl(struct file *filep,
 		if (vdev->ev_irq) {
 			eventfd_ctx_put(vdev->ev_irq);
 			free_irq(pdev->irq, vdev);
+			vdev->irq_disabled = false;
 			vdev->ev_irq = NULL;
 		}
 		if (vdev->ev_msi) {	/* irq and msi both use pdev->irq */
@@ -398,11 +406,15 @@ static long vfio_unl_ioctl(struct file *filep,
 		} else {
 			if (fd >= 0) {
 				vdev->ev_irq = eventfd_ctx_fdget(fd);
-				if (vdev->ev_irq)
+				if (vdev->ev_irq) {
 					ret = request_irq(pdev->irq,
 						vfio_interrupt,
 						vdev->pci_2_3 ? IRQF_SHARED : 0,
 						vdev->name, vdev);
+					if (vdev->vconfig[PCI_COMMAND+1] &
+					    (PCI_COMMAND_INTX_DISABLE >> 8))
+						vfio_disable_intx(vdev);
+				}
 				else
 					ret = -EINVAL;
 			}
