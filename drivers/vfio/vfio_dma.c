@@ -280,7 +280,7 @@ int vfio_dma_map_common(struct vfio_listener *listener,
 		return -EINVAL;
 	if (dmp->size & (PAGE_SIZE-1))
 		return -EINVAL;
-	if (dmp->size >= VFIO_MAX_MAP_SIZE)
+	if (dmp->size > VFIO_MAX_MAP_SIZE)
 		return -EINVAL;
 	npage = dmp->size >> PAGE_SHIFT;
 
