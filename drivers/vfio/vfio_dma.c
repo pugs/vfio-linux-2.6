@@ -56,7 +56,7 @@ static void vfio_lock_acct_bg(struct work_struct *work)
 
 	mm = vwork->mm;
 	down_write(&mm->mmap_sem);
-	mm->locked_vm -= vwork->npage;
+	mm->locked_vm += vwork->npage;
 	up_write(&mm->mmap_sem);
 	mmput(mm);		/* unref mm */
 	kfree(vwork);
