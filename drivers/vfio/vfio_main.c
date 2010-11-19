@@ -179,6 +179,7 @@ static int vfio_release(struct inode *inode, struct file *filep)
 			eventfd_ctx_put(vdev->ev_irq);
 			vdev->ev_irq = NULL;
 			vdev->irq_disabled = false;
+			vdev->virq_disabled = false;
 		}
 		kfree(vdev->vconfig);
 		vdev->vconfig = NULL;
@@ -411,8 +412,7 @@ static long vfio_unl_ioctl(struct file *filep,
 						vfio_interrupt,
 						vdev->pci_2_3 ? IRQF_SHARED : 0,
 						vdev->name, vdev);
-					if (vdev->vconfig[PCI_COMMAND+1] &
-					    (PCI_COMMAND_INTX_DISABLE >> 8))
+					if (vdev->virq_disabled)
 						vfio_disable_intx(vdev);
 				}
 				else

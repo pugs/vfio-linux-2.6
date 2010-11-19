@@ -140,11 +140,9 @@ irqreturn_t vfio_interrupt(int irq, void *dev_id)
 
 int vfio_irq_eoi(struct vfio_dev *vdev)
 {
-	/* EOI shouldn't re-enable intx if disabled by INTX_DISABLE */
-	if (vdev->vconfig[PCI_COMMAND+1] & (PCI_COMMAND_INTX_DISABLE >> 8))
-		return 0;
-
-	vfio_enable_intx(vdev);
+	/* EOI shouldn't re-enable intx if user wants it off */
+	if (!vdev->virq_disabled)
+		vfio_enable_intx(vdev);
 	return 0;
 }
 

@@ -80,6 +80,7 @@ struct vfio_dev {
 	struct perm_bits	*msi_perm;
 	bool		pci_2_3;
 	bool		irq_disabled;
+	bool		virq_disabled;
 	struct eoi_eventfd	*ev_eoi;
 };
 

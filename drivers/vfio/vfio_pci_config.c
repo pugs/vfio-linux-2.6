@@ -853,11 +853,15 @@ static void vfio_virt_basic(struct vfio_dev *vdev, int write, u16 pos, u8 *rbp)
 			u16 cmd = vdev->vconfig[pos] << 8;
 
 			if ((cmd & PCI_COMMAND_INTX_DISABLE) &&
-			    !vdev->irq_disabled)
+			    !vdev->virq_disabled) {
+				vdev->virq_disabled = 1;
 				vfio_disable_intx(vdev);
+			}
 			if (!(cmd & PCI_COMMAND_INTX_DISABLE) &&
-			    vdev->irq_disabled)
+			    vdev->virq_disabled) {
+				vdev->virq_disabled = 0;
 				vfio_enable_intx(vdev);
+			}
 		}
 		break;
 	case PCI_BASE_ADDRESS_0 ... PCI_BASE_ADDRESS_5 + 3:
