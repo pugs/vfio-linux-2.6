@@ -532,7 +532,7 @@
 #define	PCI_EXT_CAP_ID_MFVC	0x08	/* Multi-Function VC Capability */
 #define	PCI_EXT_CAP_ID_VC9	0x09	/* same as _VC */
 #define	PCI_EXT_CAP_ID_RCRB	0x0A	/* Root Complex RB? */
-#define PCI_EXT_CAP_ID_VSEC	0x0B	/* Vendor Specific */
+#define PCI_EXT_CAP_ID_VNDR	0x0B	/* Vendor Specific */
 #define PCI_EXT_CAP_ID_CAC	0x0C	/* Config Access - obsolete */
 #define PCI_EXT_CAP_ID_ACS	0x0D	/* Access Control Services */
 #define PCI_EXT_CAP_ID_ARI	0x0E	/* Alternate Routing ID */

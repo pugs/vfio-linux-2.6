@@ -92,7 +92,7 @@ static u16 pci_ext_capability_length[] = {
 	[PCI_EXT_CAP_ID_MFVC]	=	0xFF,
 	[PCI_EXT_CAP_ID_VC9]	=	0xFF,	/* same as CAP_ID_VC */
 	[PCI_EXT_CAP_ID_RCRB]	=	0,	/* root only - don't care */
-	[PCI_EXT_CAP_ID_VSEC]	=	0xFF,
+	[PCI_EXT_CAP_ID_VNDR]	=	0xFF,
 	[PCI_EXT_CAP_ID_CAC]	=	0,	/* obsolete */
 	[PCI_EXT_CAP_ID_ACS]	=	0xFF,
 	[PCI_EXT_CAP_ID_ARI]	=	PCI_EXT_CAP_ARI_SIZEOF,
@@ -610,7 +610,7 @@ int vfio_build_config_map(struct vfio_dev *vdev)
 			len = pci_ext_capability_length[ecap];
 		if (len == 0xFF) {	/* variable field */
 			switch (ecap) {
-			case PCI_EXT_CAP_ID_VSEC:
+			case PCI_EXT_CAP_ID_VNDR:
 				ret = pci_read_config_dword(pdev,
 					epos + PCI_VSEC_HDR, &dw);
 				if (ret)
