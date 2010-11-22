@@ -996,7 +996,7 @@ static int vfio_config_rwbyte(int write,
 		/* update vconfig with writeable bits */
 		vdev->vconfig[pos] =
 			(vdev->vconfig[pos] & ~wr) | (newval & wr);
-        }
+	}
 
 	/*
 	 * Now massage virtual fields

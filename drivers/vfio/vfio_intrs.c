@@ -70,7 +70,7 @@ irqreturn_t vfio_disable_intx(struct vfio_dev *vdev)
 		 * operation. Note: we could cache the value for command and
 		 * move the status read out of the lock if there was a way to
 		 * get notified of user changes to command register through
-		 * sysfs. Should be good for shared irqs. 
+		 * sysfs. Should be good for shared irqs.
 		 */
 		pci_read_config_dword(pdev, PCI_COMMAND, &cmd_status_dword);
 		origcmd = cmd_status_dword;
@@ -84,7 +84,8 @@ irqreturn_t vfio_disable_intx(struct vfio_dev *vdev)
 			/* We triggered the interrupt, disable it. */
 			newcmd = origcmd | PCI_COMMAND_INTX_DISABLE;
 			if (newcmd != origcmd)
-				pci_write_config_word(pdev, PCI_COMMAND, newcmd);
+				pci_write_config_word(pdev,
+						PCI_COMMAND, newcmd);
 			vdev->irq_disabled = true;
 			ret = IRQ_HANDLED;
 		}
