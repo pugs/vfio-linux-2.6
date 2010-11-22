@@ -44,6 +44,7 @@
 #include <linux/mmu_notifier.h>
 #include <linux/uaccess.h>
 #include <linux/suspend.h>
+#include <linux/compat.h>
 
 #include <linux/vfio.h>
 
@@ -493,6 +494,16 @@ static long vfio_unl_ioctl(struct file *filep,
 	return ret;
 }
 
+#ifdef CONFIG_COMPAT
+static long vfio_compat_ioctl(struct file *filep,
+			unsigned int cmd,
+			unsigned long arg)
+{
+	arg = (unsigned long)compat_ptr(arg);
+	return vfio_unl_ioctl(filep, cmd, arg);
+}
+#endif	/* CONFIG_COMPAT */
+
 static const struct file_operations vfio_fops = {
 	.owner		= THIS_MODULE,
 	.open		= vfio_open,
@@ -500,6 +511,9 @@ static const struct file_operations vfio_fops = {
 	.read		= vfio_read,
 	.write		= vfio_write,
 	.unlocked_ioctl	= vfio_unl_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl	= vfio_compat_ioctl,
+#endif
 	.mmap		= vfio_mmap,
 };
 
