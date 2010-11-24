@@ -45,6 +45,7 @@
 #include <linux/uaccess.h>
 #include <linux/suspend.h>
 #include <linux/compat.h>
+#include <linux/delay.h>
 
 #include <linux/vfio.h>
 
