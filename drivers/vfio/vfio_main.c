@@ -797,7 +797,7 @@ static int vfio_pm_notify(struct notifier_block *this, unsigned long event,
 	}
 }
 
-struct notifier_block vfio_pm_nb = {
+static struct notifier_block vfio_pm_nb = {
 	.notifier_call = vfio_pm_notify,
 };
 

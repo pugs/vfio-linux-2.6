@@ -41,7 +41,7 @@
 static u32 vfio_seq_num;
 static DEFINE_SPINLOCK(vfio_seq_lock);
 
-struct genl_family vfio_nl_family = {
+static struct genl_family vfio_nl_family = {
 	.id		= GENL_ID_GENERATE,
 	.hdrsize	= 0,
 	.name		= VFIO_GENL_NAME,
@@ -50,7 +50,7 @@ struct genl_family vfio_nl_family = {
 };
 
 /* Requests to userspace */
-struct sk_buff *vfio_nl_create(u8 req)
+static struct sk_buff *vfio_nl_create(u8 req)
 {
 	void *hdr;
 	struct sk_buff *msg = nlmsg_new(NLMSG_GOODSIZE, GFP_ATOMIC);
@@ -78,7 +78,7 @@ struct sk_buff *vfio_nl_create(u8 req)
  * (c) we need to know what net namespaces are involved
  * Sigh.
  */
-int vfio_nl_mcast(struct vfio_dev *vdev, struct sk_buff *msg, u8 type)
+static int vfio_nl_mcast(struct vfio_dev *vdev, struct sk_buff *msg, u8 type)
 {
 	struct list_head *pos;
 	struct vfio_nl_client *nlc;
@@ -160,7 +160,7 @@ static const struct nla_policy vfio_nl_reg_policy[VFIO_NL_ATTR_MAX+1] = {
 	[VFIO_ATTR_PCI_FUNC]	= { .type = NLA_U8 },
 };
 
-struct vfio_dev *vfio_nl_get_vdev(struct genl_info *info)
+static struct vfio_dev *vfio_nl_get_vdev(struct genl_info *info)
 {
 	u32 domain;
 	u16 bus;
