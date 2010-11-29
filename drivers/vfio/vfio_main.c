@@ -819,7 +819,6 @@ static void __exit cleanup(void)
 	pci_unregister_driver(&driver);
 	vfio_eoi_module_exit();
 	unregister_pm_notifier(&vfio_pm_nb);
-	unregister_pm_notifier(&vfio_pm_nb);
 	vfio_nl_exit();
 	vfio_class_destroy();
 }
