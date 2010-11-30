@@ -67,7 +67,8 @@
  */
 static int allow_unsafe_intrs;
 module_param(allow_unsafe_intrs, int, 0);
-MODULE_PARM_DESC(allow_unsafe_intrs, "Allow use of IOMMUs which do not support interrupt remapping");
+MODULE_PARM_DESC(allow_unsafe_intrs,
+	"Allow use of IOMMUs which do not support interrupt remapping");
 
 static int vfio_major = -1;
 static DEFINE_IDR(vfio_idr);
