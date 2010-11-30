@@ -418,8 +418,7 @@ static long vfio_unl_ioctl(struct file *filep,
 						vdev->name, vdev);
 					if (vdev->virq_disabled)
 						vfio_disable_intx(vdev);
-				}
-				else
+				} else
 					ret = -EINVAL;
 			}
 		}
