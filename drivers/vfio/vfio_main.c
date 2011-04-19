@@ -490,6 +490,10 @@ static long vfio_unl_ioctl(struct file *filep,
 		ret = vfio_irq_eoi_eventfd(vdev, fd);
 		break;
 
+	case VFIO_RESET_FUNCTION:
+		ret = pci_reset_function(vdev->pdev);
+		break;
+
 	default:
 		return -EINVAL;
 	}

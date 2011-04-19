@@ -215,6 +215,9 @@ struct vfio_dma_map {
 /* Re-enable INTx via eventfd */
 #define	VFIO_IRQ_EOI_EVENTFD	_IOW(';', 110, int)
 
+/* Reset PCI function */
+#define VFIO_RESET_FUNCTION	_IO(';', 111)
+
 /*
  * Reads, writes, and mmaps determine which PCI BAR (or config space)
  * from the high level bits of the file offset
