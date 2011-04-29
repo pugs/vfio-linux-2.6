@@ -322,7 +322,7 @@ int vfio_dma_map_common(struct vfio_listener *listener,
 	if (ret != npage) {
 		printk(KERN_ERR "%s: get_user_pages_fast returns %d, not %d\n",
 			__func__, ret, npage);
-		kfree(pages);
+		vfree(pages);
 		ret = -EFAULT;
 		goto out_lock;
 	}
